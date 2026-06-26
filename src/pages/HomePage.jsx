@@ -1,9 +1,7 @@
-function Home() {
-  return (
-    <div>
-      <h1>Home</h1>
-    </div>
-  )
+import MapViewPage from "./MapViewPage"
+
+function HomePage() {
+  return <MapViewPage />
 }
 
-export default Home
+export default HomePage

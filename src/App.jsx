@@ -1,5 +1,6 @@
 import "./App.css";
 import { Routes, Route } from "react-router";
+import { useLocation } from "react-router-dom";
 
 // pages
 import HomePage from "./pages/HomePage"
@@ -12,13 +13,18 @@ import Navbar from "./components/Navbar"
 import OnlyPrivate from "./components/OnlyPrivate";
 
 function App() {
+  const location = useLocation()
+  const showStarterNavbar = location.pathname !== "/"
 
   return (
     <div>
-      <Navbar />
-
-      <br />
-      <hr />
+      {showStarterNavbar && (
+        <>
+          <Navbar />
+          <br />
+          <hr />
+        </>
+      )}
 
       <Routes>
         <Route path="/" element={<HomePage />} />
