@@ -70,7 +70,12 @@ function AuthWrapper(props) {
   }, []) // component did mount for the whole app
 
   if (isAuthenticating) {
-    return <h3>... authenticating user</h3>
+    return (
+      <div className="app-loading-screen" role="status" aria-live="polite">
+        <div className="app-loading-spinner" aria-hidden="true" />
+        <p>Authenticating user ...</p>
+      </div>
+    )
   }
 
   return (

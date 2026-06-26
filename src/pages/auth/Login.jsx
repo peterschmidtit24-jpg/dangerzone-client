@@ -2,8 +2,9 @@
 import service from "../../services/service.config";
 
 import { useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/auth.context";
+import "../../styles/auth.css";
 
 function Login() {
 
@@ -18,6 +19,18 @@ function Login() {
 
   const handleEmailChange = (e) => setEmail(e.target.value);
   const handlePasswordChange = (e) => setPassword(e.target.value);
+
+  const fillUserDemo = () => {
+    setEmail("user@dangerzone.app");
+    setPassword("Dangerzone1");
+    setErrorMessage(null);
+  };
+
+  const fillAdminDemo = () => {
+    setEmail("admin@dangerzone.app");
+    setPassword("Dangerzone1");
+    setErrorMessage(null);
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -36,7 +49,7 @@ function Login() {
       // this is validating the token after receiving it in order to update all global stares accordingly
       await authenticateUser()
 
-      navigate("/private-page-example")
+      navigate("/")
 
     } catch (error) {
       console.log(error)
@@ -47,37 +60,71 @@ function Login() {
   };
 
   return (
-    <div>
+    <div className="auth-page">
+      <section className="auth-panel" aria-label="Dangerzone sign in">
+        <header className="auth-brand">
+          <div className="auth-brand-row">
+            <span className="auth-logo" aria-hidden="true">!</span>
+            <strong>DANGER<span>ZONE</span></strong>
+          </div>
+          <p>City Incident Reporting Network</p>
+        </header>
 
-      <h1>Login Form</h1>
+        <div className="auth-card">
+          <nav className="auth-tabs" aria-label="Authentication">
+            <Link className="auth-tab active" to="/login">Sign In</Link>
+            <Link className="auth-tab" to="/signup">Register</Link>
+          </nav>
 
-      <form onSubmit={handleLogin}>
-        <label>Email:</label>
-        <input
-          type="email"
-          name="email"
-          value={email}
-          onChange={handleEmailChange}
-        />
+          <form className="auth-form" onSubmit={handleLogin}>
+            <label className="auth-field">
+              <span>E-Mail</span>
+              <div className="auth-input-wrap">
+                <span aria-hidden="true" className="auth-field-icon">@</span>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="marco@dangerzone.app"
+                  value={email}
+                  onChange={handleEmailChange}
+                  autoComplete="email"
+                  required
+                />
+              </div>
+            </label>
 
-        <br />
+            <label className="auth-field">
+              <span>Password</span>
+              <div className="auth-input-wrap">
+                <span aria-hidden="true" className="auth-field-icon">#</span>
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="........"
+                  value={password}
+                  onChange={handlePasswordChange}
+                  autoComplete="current-password"
+                  required
+                />
+              </div>
+            </label>
 
-        <label>Password:</label>
-        <input
-          type="password"
-          name="password"
-          value={password}
-          onChange={handlePasswordChange}
-        />
+            {errorMessage && <p className="auth-error">{errorMessage}</p>}
 
-        <br />
+            <button className="auth-submit" type="submit">
+              <span aria-hidden="true">~</span>
+              Enter Dangerzone
+            </button>
+          </form>
 
-        <button type="submit">Login</button>
+          <div className="auth-demo-actions">
+            <button type="button" onClick={fillUserDemo}>o User Demo</button>
+            <button type="button" className="admin" onClick={fillAdminDemo}># Admin Demo</button>
+          </div>
+        </div>
 
-        {errorMessage && <p>{errorMessage}</p>}
-
-      </form>
-      
+        <footer className="auth-footer">DANGERZONE v1.0 - Berlin, 2026</footer>
+      </section>
     </div>
   );
 }

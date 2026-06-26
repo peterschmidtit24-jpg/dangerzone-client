@@ -4,11 +4,11 @@ import L from "leaflet"
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 
-function createIncidentIcon(type) {
+function createIncidentIcon(type, isHighlighted) {
   return L.divIcon({
     className: "dangerzone-marker",
     html: `
-      <div class="dangerzone-marker-inner" style="--incident-color: ${type.color}">
+      <div class="dangerzone-marker-inner${isHighlighted ? " dangerzone-marker-inner-active" : ""}" style="--incident-color: ${type.color}">
         <span class="dangerzone-marker-symbol">${type.icon}</span>
         <span class="dangerzone-marker-label">${type.label}</span>
       </div>
@@ -19,7 +19,12 @@ function createIncidentIcon(type) {
   })
 }
 
-function MapCanvas({ incidents }) {
+function MapCanvas({
+  highlightedIncidentId,
+  incidents,
+  onIncidentSelect,
+  onReportIncident,
+}) {
   // guard for coordinate values
   const incidentsWithCoordinates = incidents.filter(
     (incident) => Number.isFinite(incident.lat) && Number.isFinite(incident.lng),
@@ -40,10 +45,14 @@ function MapCanvas({ incidents }) {
 
         {incidentsWithCoordinates.map((incident) => {
           const type = incidentTypes[incident.type]
+          const isHighlighted = incident.id === highlightedIncidentId
 
           return (
             <Marker
-              icon={createIncidentIcon(type)}
+              eventHandlers={{
+                click: () => onIncidentSelect(incident),
+              }}
+              icon={createIncidentIcon(type, isHighlighted)}
               key={incident.id}
               position={[incident.lat, incident.lng]}
             >
@@ -65,7 +74,11 @@ function MapCanvas({ incidents }) {
       </div>
 
       {/* floating buttons */}
-      <button className="report-incident-button" type="button">
+      <button
+        className="report-incident-button"
+        onClick={onReportIncident}
+        type="button"
+      >
         + Report Incident
       </button>
       <button className="help-button" type="button" aria-label="Help">

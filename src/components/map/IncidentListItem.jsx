@@ -6,11 +6,26 @@ const severityClassNames = {
   Low: "severity-low",
 }
 
-function IncidentListItem({ incident }) {
+function IncidentListItem({ incident, onHover, onSelect }) {
   const type = incidentTypes[incident.type]
 
   return (
-    <article className="incident-list-item">
+    <article
+      className="incident-list-item"
+      onBlur={() => onHover(null)}
+      onClick={() => onSelect(incident)}
+      onFocus={() => onHover(incident.id)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault()
+          onSelect(incident)
+        }
+      }}
+      onMouseEnter={() => onHover(incident.id)}
+      onMouseLeave={() => onHover(null)}
+      role="button"
+      tabIndex={0}
+    >
       <div
         className="incident-type-icon"
         style={{ "--incident-color": type.color }}

@@ -7,6 +7,9 @@ function IncidentSidebar({
   errorMessage,
   incidents,
   isLoading,
+  onIncidentHover,
+  onIncidentSelect,
+  onNewIncident,
   onTypeChange,
   selectedType,
   totalIncidentCount,
@@ -18,7 +21,9 @@ function IncidentSidebar({
           <h1>Active Incidents</h1>
           <p>{incidents.length} of {totalIncidentCount} in 5 km radius</p>
         </div>
-        <button className="new-incident-button">+ New</button>
+        <button className="new-incident-button" onClick={onNewIncident} type="button">
+          + New
+        </button>
       </div>
 
       <label className="search-field">
@@ -66,7 +71,7 @@ function IncidentSidebar({
       </section>
 
       <div className="incident-list">
-        {isLoading && <p className="incident-list-state">Loading incidents...</p>}
+        {isLoading && <p className="incident-list-state">Loading data from server ...</p>}
         {!isLoading && errorMessage && (
           <p className="incident-list-state incident-list-error">{errorMessage}</p>
         )}
@@ -74,7 +79,12 @@ function IncidentSidebar({
           <p className="incident-list-state">No active incidents found.</p>
         )}
         {!isLoading && !errorMessage && incidents.map((incident) => (
-          <IncidentListItem incident={incident} key={incident.id} />
+          <IncidentListItem
+            incident={incident}
+            key={incident.id}
+            onHover={onIncidentHover}
+            onSelect={onIncidentSelect}
+          />
         ))}
       </div>
     </aside>

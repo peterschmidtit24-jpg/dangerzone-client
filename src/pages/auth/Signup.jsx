@@ -1,10 +1,13 @@
 // import axios from "axios";
 import service from "../../services/service.config";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useContext, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context/auth.context";
+import "../../styles/auth.css";
 
 function Signup() {
 
+  const { authenticateUser } = useContext(AuthContext)
   const navigate = useNavigate()
 
   const [email, setEmail] = useState("");
@@ -16,6 +19,20 @@ function Signup() {
   const handleEmailChange = (e) => setEmail(e.target.value);
   const handleUsernameChange = (e) => setUsername(e.target.value);
   const handlePasswordChange = (e) => setPassword(e.target.value);
+
+  const fillUserDemo = () => {
+    setUsername("User Demo");
+    setEmail("user@dangerzone.app");
+    setPassword("Dangerzone1");
+    setErrorMessage(null);
+  };
+
+  const fillAdminDemo = () => {
+    setUsername("Admin Demo");
+    setEmail("admin@dangerzone.app");
+    setPassword("Dangerzone1");
+    setErrorMessage(null);
+  };
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -35,10 +52,13 @@ function Signup() {
         password
       }
       
-      const response = await service.post("/auth/signup", body)
-      console.log(response)
+      await service.post("/auth/signup", body)
 
-      navigate("/login")
+      const loginResponse = await service.post("/auth/login", { email, password })
+      localStorage.setItem("authToken", loginResponse.data.authToken)
+      await authenticateUser()
+
+      navigate("/")
 
     } catch (error) {
       console.log(error)
@@ -49,48 +69,86 @@ function Signup() {
   };
 
   return (
-    <div>
+    <div className="auth-page">
+      <section className="auth-panel" aria-label="Dangerzone register">
+        <header className="auth-brand">
+          <div className="auth-brand-row">
+            <span className="auth-logo" aria-hidden="true">!</span>
+            <strong>DANGER<span>ZONE</span></strong>
+          </div>
+          <p>City Incident Reporting Network</p>
+        </header>
 
-      <h1>Signup Form</h1>
-    
-      <form onSubmit={handleSignup}>
+        <div className="auth-card">
+          <nav className="auth-tabs" aria-label="Authentication">
+            <Link className="auth-tab" to="/login">Sign In</Link>
+            <Link className="auth-tab active" to="/signup">Register</Link>
+          </nav>
 
-        <label>Email:</label>
-        <input
-          type="email"
-          name="email"
-          value={email}
-          onChange={handleEmailChange}
-        />
+          <form className="auth-form" onSubmit={handleSignup}>
+            <label className="auth-field">
+              <span>Full Name</span>
+              <div className="auth-input-wrap">
+                <span aria-hidden="true" className="auth-field-icon">o</span>
+                <input
+                  type="text"
+                  name="username"
+                  placeholder="Your name"
+                  value={username}
+                  onChange={handleUsernameChange}
+                  autoComplete="name"
+                />
+              </div>
+            </label>
 
-        <br />
+            <label className="auth-field">
+              <span>E-Mail</span>
+              <div className="auth-input-wrap">
+                <span aria-hidden="true" className="auth-field-icon">@</span>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="marco@dangerzone.app"
+                  value={email}
+                  onChange={handleEmailChange}
+                  autoComplete="email"
+                  required
+                />
+              </div>
+            </label>
 
-        <label>Username:</label>
-        <input
-          type="text"
-          name="username"
-          value={username}
-          onChange={handleUsernameChange}
-        />
+            <label className="auth-field">
+              <span>Password</span>
+              <div className="auth-input-wrap">
+                <span aria-hidden="true" className="auth-field-icon">#</span>
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="........"
+                  value={password}
+                  onChange={handlePasswordChange}
+                  autoComplete="new-password"
+                  required
+                />
+              </div>
+            </label>
 
-        <br />
+            {errorMessage && <p className="auth-error">{errorMessage}</p>}
 
-        <label>Password:</label>
-        <input
-          type="password"
-          name="password"
-          value={password}
-          onChange={handlePasswordChange}
-        />
+            <button className="auth-submit" type="submit">
+              <span aria-hidden="true">~</span>
+              Enter Dangerzone
+            </button>
+          </form>
 
-        <br />
+          <div className="auth-demo-actions">
+            <button type="button" onClick={fillUserDemo}>o User Demo</button>
+            <button type="button" className="admin" onClick={fillAdminDemo}># Admin Demo</button>
+          </div>
+        </div>
 
-        <button type="submit">Signup</button>
-
-        {errorMessage && <p>{errorMessage}</p>}
-
-      </form>
-      
+        <footer className="auth-footer">DANGERZONE v1.0 - Berlin, 2026</footer>
+      </section>
     </div>
   );
 }

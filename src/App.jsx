@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 
 // pages
 import HomePage from "./pages/HomePage"
+import IncidentsPage from "./pages/IncidentsPage"
 import Login from "./pages/auth/Login"
 import Signup from "./pages/auth/Signup"
 import PrivatePageExample from "./pages/PrivatePageExample";
@@ -14,7 +15,7 @@ import OnlyPrivate from "./components/OnlyPrivate";
 
 function App() {
   const location = useLocation()
-  const showStarterNavbar = location.pathname !== "/"
+  const showStarterNavbar = !["/", "/incidents", "/signup", "/login"].includes(location.pathname)
 
   return (
     <div>
@@ -27,7 +28,8 @@ function App() {
       )}
 
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<OnlyPrivate><HomePage /></OnlyPrivate>} />
+        <Route path="/incidents" element={<OnlyPrivate><IncidentsPage /></OnlyPrivate>} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
         <Route path="/private-page-example" element={<OnlyPrivate> <PrivatePageExample /> </OnlyPrivate>} />
