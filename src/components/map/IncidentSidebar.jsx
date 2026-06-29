@@ -10,16 +10,21 @@ function IncidentSidebar({
   onIncidentHover,
   onIncidentSelect,
   onNewIncident,
+  onRadiusChange,
+  onShowRadiusOverlayChange,
   onTypeChange,
+  selectedRadius,
   selectedType,
+  showRadiusOverlay,
   totalIncidentCount,
+  userPosition,
 }) {
   return (
     <aside className="incident-sidebar">
       <div className="sidebar-heading">
         <div>
           <h1>Active Incidents</h1>
-          <p>{incidents.length} of {totalIncidentCount} in 5 km radius</p>
+          <p>{incidents.length} of {totalIncidentCount} in {selectedRadius} km radius</p>
         </div>
         <button className="new-incident-button" onClick={onNewIncident} type="button">
           + New
@@ -36,8 +41,9 @@ function IncidentSidebar({
         <div className="radius-options">
           {radiusOptions.map((radius) => (
             <button
-              className={radius === 5 ? "active" : ""}
+              className={radius === selectedRadius ? "active" : ""}
               key={radius}
+              onClick={() => onRadiusChange(radius)}
               type="button"
             >
               {radius}
@@ -45,6 +51,14 @@ function IncidentSidebar({
           ))}
         </div>
         <span className="radius-unit">km</span>
+        <label className="radius-overlay-toggle">
+          <input
+            checked={showRadiusOverlay}
+            onChange={(event) => onShowRadiusOverlayChange(event.target.checked)}
+            type="checkbox"
+          />
+          <span>Show Radius Area</span>
+        </label>
       </section>
 
       <section className="filter-section">
@@ -84,6 +98,7 @@ function IncidentSidebar({
             key={incident.id}
             onHover={onIncidentHover}
             onSelect={onIncidentSelect}
+            userPosition={userPosition}
           />
         ))}
       </div>

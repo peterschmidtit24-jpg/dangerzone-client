@@ -1,7 +1,7 @@
 import { incidentTypes } from "../../data/mockIncidents"
 
 import L from "leaflet"
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet"
+import { Circle, MapContainer, Marker, Popup, TileLayer } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 
 function createIncidentIcon(type, isHighlighted) {
@@ -24,6 +24,9 @@ function MapCanvas({
   incidents,
   onIncidentSelect,
   onReportIncident,
+  selectedRadius,
+  showRadiusOverlay,
+  userPosition,
 }) {
   // guard for coordinate values
   const incidentsWithCoordinates = incidents.filter(
@@ -34,7 +37,8 @@ function MapCanvas({
     <main className="map-canvas" aria-label="Incident map">
 
       <MapContainer
-        center={[52.52, 13.405]}
+        center={[userPosition.lat, userPosition.lng]}
+        key={`${userPosition.lat}-${userPosition.lng}`}
         zoom={13}
         className="leaflet-map"
       >
@@ -43,8 +47,22 @@ function MapCanvas({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
+        {showRadiusOverlay && (
+          <Circle
+            center={[userPosition.lat, userPosition.lng]}
+            pathOptions={{
+              color: "#ff2b1f",
+              fillColor: "#ff2b1f",
+              fillOpacity: 0.16,
+              opacity: 0.7,
+              weight: 2,
+            }}
+            radius={selectedRadius * 1000}
+          />
+        )}
+
         {incidentsWithCoordinates.map((incident) => {
-          const type = incidentTypes[incident.type]
+          const type = incidentTypes[incident.type] || incidentTypes.other
           const isHighlighted = incident.id === highlightedIncidentId
 
           return (
@@ -66,7 +84,9 @@ function MapCanvas({
         })}
       </MapContainer>
             
-      <div className="map-location-badge">Berlin - 52.52N / 13.40E</div>
+      <div className="map-location-badge">
+        {userPosition.label} - {userPosition.lat.toFixed(2)}N / {userPosition.lng.toFixed(2)}E
+      </div>
 
       <div className="map-scale">
         <span />

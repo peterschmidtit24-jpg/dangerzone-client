@@ -53,6 +53,12 @@ export const incidentTypes = {
     color: "#46d8cf",
     icon: "R",
   },
+  other: {
+    label: "Other",
+    shortLabel: "OTH",
+    color: "#b8bdc1",
+    icon: "?",
+  },
 }
 
 export const mockIncidents = [

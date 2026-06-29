@@ -6,11 +6,20 @@ import IncidentSidebar from "../components/map/IncidentSidebar"
 import MapCanvas from "../components/map/MapCanvas"
 import { getAllIncidents, getIncident } from "../services/incident.service"
 import "../styles/mapView.css"
+import useUserPosition from "../hooks/useUserPosition"
+import { getDistanceInKm } from "../utils/distance"
 import { mapServerIncidentToViewModel } from "../utils/incidentMapper"
 
 function MapViewPage() {
+  const {
+    requestUserPosition,
+    setUserPositionFromIncident,
+    userPosition,
+  } = useUserPosition()
   const [incidents, setIncidents] = useState([])
   const [selectedType, setSelectedType] = useState("all")
+  const [selectedRadius, setSelectedRadius] = useState(5)
+  const [showRadiusOverlay, setShowRadiusOverlay] = useState(true)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState("")
   const [selectedIncident, setSelectedIncident] = useState(null)
@@ -80,13 +89,20 @@ function MapViewPage() {
     setSelectedIncident(mappedIncident)
   }
 
-  const visibleIncidents = selectedType === "all"
-    ? incidents
-    : incidents.filter((incident) => incident.type === selectedType)
+  const visibleIncidents = incidents.filter((incident) => {
+    const typeMatches = selectedType === "all" || incident.type === selectedType
+    const distanceInKm = getDistanceInKm(userPosition, incident)
+    const radiusMatches = Number.isFinite(distanceInKm) && distanceInKm <= selectedRadius
+
+    return typeMatches && radiusMatches
+  })
 
   return (
     <div className="map-view-page">
-      <DangerzoneHeader incidentCount={incidents.length} />
+      <DangerzoneHeader
+        incidentCount={incidents.length}
+        onSetPosition={requestUserPosition}
+      />
       <div className="map-view-shell">
         <IncidentSidebar
           errorMessage={errorMessage}
@@ -95,15 +111,23 @@ function MapViewPage() {
           onIncidentHover={setHoveredIncidentId}
           onIncidentSelect={handleIncidentSelect}
           onNewIncident={() => setIsCreateModalOpen(true)}
+          onRadiusChange={setSelectedRadius}
+          onShowRadiusOverlayChange={setShowRadiusOverlay}
           onTypeChange={setSelectedType}
+          selectedRadius={selectedRadius}
           selectedType={selectedType}
+          showRadiusOverlay={showRadiusOverlay}
           totalIncidentCount={incidents.length}
+          userPosition={userPosition}
         />
         <MapCanvas
           highlightedIncidentId={hoveredIncidentId}
           incidents={visibleIncidents}
           onIncidentSelect={handleIncidentSelect}
           onReportIncident={() => setIsCreateModalOpen(true)}
+          selectedRadius={selectedRadius}
+          showRadiusOverlay={showRadiusOverlay}
+          userPosition={userPosition}
         />
         {isLoading && (
           <div className="map-loading-overlay" role="status" aria-live="polite">
@@ -119,6 +143,7 @@ function MapViewPage() {
           onClose={() => setSelectedIncident(null)}
           onDelete={handleIncidentDelete}
           onIncidentChange={handleIncidentChange}
+          onSetPosition={setUserPositionFromIncident}
         />
       )}
       {isCreateModalOpen && (

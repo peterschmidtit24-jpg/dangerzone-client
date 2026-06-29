@@ -4,9 +4,16 @@ import IncidentDetailModal from "../components/map/IncidentDetailModal"
 import { incidentTypes } from "../data/mockIncidents"
 import { getAllIncidents, getIncident } from "../services/incident.service"
 import "../styles/mapView.css"
+import useUserPosition from "../hooks/useUserPosition"
+import { getIncidentDistanceLabel } from "../utils/distance"
 import { mapServerIncidentToViewModel } from "../utils/incidentMapper"
 
 function IncidentsPage() {
+  const {
+    requestUserPosition,
+    setUserPositionFromIncident,
+    userPosition,
+  } = useUserPosition()
   const [incidents, setIncidents] = useState([])
   const [selectedIncident, setSelectedIncident] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -84,7 +91,10 @@ function IncidentsPage() {
 
   return (
     <div className="map-view-page incidents-page">
-      <DangerzoneHeader incidentCount={incidents.length} />
+      <DangerzoneHeader
+        incidentCount={incidents.length}
+        onSetPosition={requestUserPosition}
+      />
 
       <main className="incidents-page-shell">
         <div className="incidents-toolbar">
@@ -141,7 +151,7 @@ function IncidentsPage() {
         {!isLoading && !errorMessage && filteredIncidents.length > 0 && (
           <section className="incident-card-grid" aria-label="Incident cards">
             {filteredIncidents.map((incident) => {
-              const type = incidentTypes[incident.type]
+              const type = incidentTypes[incident.type] || incidentTypes.other
 
               return (
                 <article
@@ -162,6 +172,9 @@ function IncidentsPage() {
                     <div>
                       <h2>{type.label}</h2>
                       <strong>{incident.address}</strong>
+                      <span className="incident-distance">
+                        {getIncidentDistanceLabel(userPosition, incident)}
+                      </span>
                     </div>
                     <span className="incident-card-dot" />
                   </div>
@@ -187,6 +200,7 @@ function IncidentsPage() {
           onClose={() => setSelectedIncident(null)}
           onDelete={handleIncidentDelete}
           onIncidentChange={handleIncidentChange}
+          onSetPosition={setUserPositionFromIncident}
         />
       )}
     </div>

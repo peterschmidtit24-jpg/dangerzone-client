@@ -10,6 +10,8 @@ function AuthWrapper(props) {
 
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [loggedUserId, setLoggedUserId] = useState(null)
+  const [loggedUserEmail, setLoggedUserEmail] = useState(null)
+  const [loggedUsername, setLoggedUsername] = useState(null)
 
   //* extra for admin roles
   const [loggedUserRole, setLoggedUserRole] = useState(null)
@@ -24,6 +26,8 @@ function AuthWrapper(props) {
     if(!authToken) {
       setIsLoggedIn(false)
       setLoggedUserId(null)
+      setLoggedUserEmail(null)
+      setLoggedUsername(null)
       setIsAuthenticating(false)
 
       //* extra
@@ -45,6 +49,8 @@ function AuthWrapper(props) {
       // if the request gets to this point it means the user token is correct
       setIsLoggedIn(true)
       setLoggedUserId(response.data._id)
+      setLoggedUserEmail(response.data.email)
+      setLoggedUsername(response.data.username)
       setIsAuthenticating(false)
 
       //* extra
@@ -55,6 +61,8 @@ function AuthWrapper(props) {
       // if the request gets here it means the user token is not valid or not provided.
       setIsLoggedIn(false)
       setLoggedUserId(null)
+      setLoggedUserEmail(null)
+      setLoggedUsername(null)
       setIsAuthenticating(false)
 
       //* extra
@@ -63,7 +71,14 @@ function AuthWrapper(props) {
 
   }
 
-  const passedContext = { isLoggedIn, loggedUserId, loggedUserRole, authenticateUser }
+  const passedContext = {
+    authenticateUser,
+    isLoggedIn,
+    loggedUserEmail,
+    loggedUserId,
+    loggedUsername,
+    loggedUserRole,
+  }
 
   useEffect(() => {
     authenticateUser()

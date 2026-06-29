@@ -13,6 +13,7 @@ function IncidentDetailModal({
   onClose,
   onDelete,
   onIncidentChange,
+  onSetPosition,
 }) {
   const { isLoggedIn, loggedUserId } = useContext(AuthContext)
   const [commentText, setCommentText] = useState("")
@@ -26,7 +27,7 @@ function IncidentDetailModal({
   const [errorMessage, setErrorMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const type = incidentTypes[incident.type] || incidentTypes.pothole
+  const type = incidentTypes[incident.type] || incidentTypes.other
   const isOwner = incident.createdById === loggedUserId
 
   useEffect(() => {
@@ -126,6 +127,15 @@ function IncidentDetailModal({
             <h2 style={{ color: type.color }}>{type.label}</h2>
             <p>{incident.address}</p>
           </div>
+          {onSetPosition && (
+            <button
+              className="incident-position-button"
+              onClick={() => onSetPosition(incident)}
+              type="button"
+            >
+              Set Position Here
+            </button>
+          )}
           <button className="incident-modal-close" onClick={onClose} type="button">
             x
           </button>

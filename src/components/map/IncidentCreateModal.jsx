@@ -18,7 +18,7 @@ function IncidentCreateModal({ onClose, onIncidentCreate }) {
   const [errorMessage, setErrorMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const selectedType = incidentTypes[formValues.incidentType]
+  const selectedType = incidentTypes[formValues.incidentType] || incidentTypes.other
 
   function updateField(fieldName, value) {
     setFormValues((currentValues) => ({

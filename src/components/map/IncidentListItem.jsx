@@ -1,4 +1,5 @@
 import { incidentTypes } from "../../data/mockIncidents"
+import { getIncidentDistanceLabel } from "../../utils/distance"
 
 const severityClassNames = {
   High: "severity-high",
@@ -6,8 +7,8 @@ const severityClassNames = {
   Low: "severity-low",
 }
 
-function IncidentListItem({ incident, onHover, onSelect }) {
-  const type = incidentTypes[incident.type]
+function IncidentListItem({ incident, onHover, onSelect, userPosition }) {
+  const type = incidentTypes[incident.type] || incidentTypes.other
 
   return (
     <article
@@ -40,6 +41,9 @@ function IncidentListItem({ incident, onHover, onSelect }) {
           <span>{incident.timeAgo}</span>
         </div>
         <p>{incident.address}</p>
+        <p className="incident-distance">
+          {getIncidentDistanceLabel(userPosition, incident)}
+        </p>
         <p className="incident-author">by {incident.createdBy}</p>
         <div className="incident-meta">
           <span className={severityClassNames[incident.severity]}>

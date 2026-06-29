@@ -3,9 +3,10 @@ import { useContext } from "react"
 import { NavLink, useNavigate } from "react-router-dom"
 import { AuthContext } from "../../context/auth.context"
 
-function DangerzoneHeader({ incidentCount }) {
+function DangerzoneHeader({ incidentCount, onSetPosition }) {
   const navigate = useNavigate()
-  const { authenticateUser, isLoggedIn } = useContext(AuthContext)
+  const { authenticateUser, isLoggedIn, loggedUserEmail, loggedUsername } = useContext(AuthContext)
+  const displayName = loggedUsername || loggedUserEmail || "Signed in"
 
   async function handleLogout() {
     localStorage.removeItem("authToken")
@@ -39,7 +40,7 @@ function DangerzoneHeader({ incidentCount }) {
         </NavLink>
       </nav>
 
-      <button className="dz-position-button" type="button">
+      <button className="dz-position-button" onClick={onSetPosition} type="button">
         <span aria-hidden="true">A</span>
         Set Position
         <span aria-hidden="true">/</span>
@@ -47,7 +48,7 @@ function DangerzoneHeader({ incidentCount }) {
 
       <div className="dz-user-status">
         <span className="dz-online-dot" />
-        <span>Marco Weber</span>
+        <span>{displayName}</span>
         {isLoggedIn && (
           <button
             className="dz-logout-button"
