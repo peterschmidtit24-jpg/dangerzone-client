@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import DangerzoneHeader from "../components/map/DangerzoneHeader"
 import IncidentDetailModal from "../components/map/IncidentDetailModal"
+import PositionModal from "../components/map/PositionModal"
 import { incidentTypes } from "../data/mockIncidents"
 import { getAllIncidents, getIncident } from "../services/incident.service"
 import "../styles/mapView.css"
@@ -11,6 +12,7 @@ import { mapServerIncidentToViewModel } from "../utils/incidentMapper"
 function IncidentsPage() {
   const {
     requestUserPosition,
+    setUserPositionFromAddress,
     setUserPositionFromIncident,
     userPosition,
   } = useUserPosition()
@@ -21,6 +23,7 @@ function IncidentsPage() {
   const [errorMessage, setErrorMessage] = useState("")
   const [selectedType, setSelectedType] = useState("all")
   const [searchTerm, setSearchTerm] = useState("")
+  const [isPositionModalOpen, setIsPositionModalOpen] = useState(false)
 
   useEffect(() => {
     async function loadIncidents() {
@@ -51,7 +54,12 @@ function IncidentsPage() {
       setIsIncidentLoading(true)
 
       const response = await getIncident(incident.id)
-      setSelectedIncident(mapServerIncidentToViewModel(response.data))
+      const mappedIncident = mapServerIncidentToViewModel(response.data)
+      setSelectedIncident({
+        ...mappedIncident,
+        lat: Number.isFinite(response.data.lat) ? mappedIncident.lat : incident.lat,
+        lng: Number.isFinite(response.data.lng) ? mappedIncident.lng : incident.lng,
+      })
     } catch (error) {
       console.error(error)
     } finally {
@@ -61,10 +69,16 @@ function IncidentsPage() {
 
   function handleIncidentChange(updatedIncident) {
     const mappedIncident = mapServerIncidentToViewModel(updatedIncident)
+    const previousIncident = incidents.find((incident) => incident.id === mappedIncident.id)
+    const incidentWithCoordinates = {
+      ...mappedIncident,
+      lat: Number.isFinite(updatedIncident.lat) ? mappedIncident.lat : previousIncident?.lat,
+      lng: Number.isFinite(updatedIncident.lng) ? mappedIncident.lng : previousIncident?.lng,
+    }
 
-    setSelectedIncident(mappedIncident)
+    setSelectedIncident(incidentWithCoordinates)
     setIncidents((currentIncidents) => currentIncidents.map((incident) => (
-      incident.id === mappedIncident.id ? mappedIncident : incident
+      incident.id === mappedIncident.id ? incidentWithCoordinates : incident
     )))
   }
 
@@ -93,7 +107,7 @@ function IncidentsPage() {
     <div className="map-view-page incidents-page">
       <DangerzoneHeader
         incidentCount={incidents.length}
-        onSetPosition={requestUserPosition}
+        onSetPosition={() => setIsPositionModalOpen(true)}
       />
 
       <main className="incidents-page-shell">
@@ -201,6 +215,16 @@ function IncidentsPage() {
           onDelete={handleIncidentDelete}
           onIncidentChange={handleIncidentChange}
           onSetPosition={setUserPositionFromIncident}
+        />
+      )}
+      {isPositionModalOpen && (
+        <PositionModal
+          currentPosition={userPosition}
+          incidents={incidents}
+          onClose={() => setIsPositionModalOpen(false)}
+          onUseAddress={setUserPositionFromAddress}
+          onUseCurrentPosition={requestUserPosition}
+          onUseIncident={setUserPositionFromIncident}
         />
       )}
     </div>

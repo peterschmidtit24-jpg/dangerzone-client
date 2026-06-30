@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import DangerzoneHeader from "../components/map/DangerzoneHeader"
 import IncidentCreateModal from "../components/map/IncidentCreateModal"
 import IncidentDetailModal from "../components/map/IncidentDetailModal"
+import PositionModal from "../components/map/PositionModal"
 import IncidentSidebar from "../components/map/IncidentSidebar"
 import MapCanvas from "../components/map/MapCanvas"
 import { getAllIncidents, getIncident } from "../services/incident.service"
@@ -13,6 +14,7 @@ import { mapServerIncidentToViewModel } from "../utils/incidentMapper"
 function MapViewPage() {
   const {
     requestUserPosition,
+    setUserPositionFromAddress,
     setUserPositionFromIncident,
     userPosition,
   } = useUserPosition()
@@ -25,6 +27,7 @@ function MapViewPage() {
   const [selectedIncident, setSelectedIncident] = useState(null)
   const [isIncidentLoading, setIsIncidentLoading] = useState(false)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isPositionModalOpen, setIsPositionModalOpen] = useState(false)
   const [hoveredIncidentId, setHoveredIncidentId] = useState(null)
 
   useEffect(() => {
@@ -56,7 +59,12 @@ function MapViewPage() {
       setIsIncidentLoading(true)
 
       const response = await getIncident(incident.id)
-      setSelectedIncident(mapServerIncidentToViewModel(response.data))
+      const mappedIncident = mapServerIncidentToViewModel(response.data)
+      setSelectedIncident({
+        ...mappedIncident,
+        lat: Number.isFinite(response.data.lat) ? mappedIncident.lat : incident.lat,
+        lng: Number.isFinite(response.data.lng) ? mappedIncident.lng : incident.lng,
+      })
     } catch (error) {
       console.error(error)
     } finally {
@@ -66,10 +74,16 @@ function MapViewPage() {
 
   function handleIncidentChange(updatedIncident) {
     const mappedIncident = mapServerIncidentToViewModel(updatedIncident)
+    const previousIncident = incidents.find((incident) => incident.id === mappedIncident.id)
+    const incidentWithCoordinates = {
+      ...mappedIncident,
+      lat: Number.isFinite(updatedIncident.lat) ? mappedIncident.lat : previousIncident?.lat,
+      lng: Number.isFinite(updatedIncident.lng) ? mappedIncident.lng : previousIncident?.lng,
+    }
 
-    setSelectedIncident(mappedIncident)
+    setSelectedIncident(incidentWithCoordinates)
     setIncidents((currentIncidents) => currentIncidents.map((incident) => (
-      incident.id === mappedIncident.id ? mappedIncident : incident
+      incident.id === mappedIncident.id ? incidentWithCoordinates : incident
     )))
   }
 
@@ -101,7 +115,7 @@ function MapViewPage() {
     <div className="map-view-page">
       <DangerzoneHeader
         incidentCount={incidents.length}
-        onSetPosition={requestUserPosition}
+        onSetPosition={() => setIsPositionModalOpen(true)}
       />
       <div className="map-view-shell">
         <IncidentSidebar
@@ -150,6 +164,16 @@ function MapViewPage() {
         <IncidentCreateModal
           onClose={() => setIsCreateModalOpen(false)}
           onIncidentCreate={handleIncidentCreate}
+        />
+      )}
+      {isPositionModalOpen && (
+        <PositionModal
+          currentPosition={userPosition}
+          incidents={incidents}
+          onClose={() => setIsPositionModalOpen(false)}
+          onUseAddress={setUserPositionFromAddress}
+          onUseCurrentPosition={requestUserPosition}
+          onUseIncident={setUserPositionFromIncident}
         />
       )}
     </div>

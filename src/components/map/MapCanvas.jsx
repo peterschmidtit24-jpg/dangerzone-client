@@ -1,7 +1,7 @@
 import { incidentTypes } from "../../data/mockIncidents"
 
 import L from "leaflet"
-import { Circle, MapContainer, Marker, Popup, TileLayer } from "react-leaflet"
+import { Circle, MapContainer, Marker, Popup, ScaleControl, TileLayer } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 
 function createIncidentIcon(type, isHighlighted) {
@@ -46,10 +46,12 @@ function MapCanvas({
           attribution="&copy; OpenStreetMap contributors"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        <ScaleControl imperial={false} maxWidth={140} position="bottomleft" />
 
         {showRadiusOverlay && (
           <Circle
             center={[userPosition.lat, userPosition.lng]}
+            key={`${userPosition.lat}-${userPosition.lng}-${selectedRadius}`}
             pathOptions={{
               color: "#ff2b1f",
               fillColor: "#ff2b1f",
@@ -86,11 +88,6 @@ function MapCanvas({
             
       <div className="map-location-badge">
         {userPosition.label} - {userPosition.lat.toFixed(2)}N / {userPosition.lng.toFixed(2)}E
-      </div>
-
-      <div className="map-scale">
-        <span />
-        1 KM
       </div>
 
       {/* floating buttons */}
