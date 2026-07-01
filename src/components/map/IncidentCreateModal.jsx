@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import { AuthContext } from "../../context/auth.context"
 import { incidentTypes } from "../../data/mockIncidents"
 import { createIncident } from "../../services/incident.service"
+import { resolveAddress } from "../../utils/geocode"
 
 const initialFormValues = {
   incidentType: "pothole",
@@ -17,14 +18,29 @@ function IncidentCreateModal({ onClose, onIncidentCreate }) {
   const [formValues, setFormValues] = useState(initialFormValues)
   const [errorMessage, setErrorMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [pendingLocationMatch, setPendingLocationMatch] = useState(null)
 
   const selectedType = incidentTypes[formValues.incidentType] || incidentTypes.other
 
   function updateField(fieldName, value) {
+    setPendingLocationMatch(null)
     setFormValues((currentValues) => ({
       ...currentValues,
       [fieldName]: value,
     }))
+  }
+
+  async function createIncidentWithLocation(values, coordinates, location) {
+    const response = await createIncident({
+      ...values,
+      location,
+      lat: coordinates.lat,
+      lng: coordinates.lng,
+      description: values.description.trim(),
+      active: true,
+    })
+
+    onIncidentCreate(response.data)
   }
 
   async function handleSubmit(event) {
@@ -38,18 +54,43 @@ function IncidentCreateModal({ onClose, onIncidentCreate }) {
     try {
       setIsSubmitting(true)
       setErrorMessage("")
+      const location = formValues.location.trim()
+      const coordinates = await resolveAddress(location)
 
-      const response = await createIncident({
-        ...formValues,
-        location: formValues.location.trim(),
-        description: formValues.description.trim(),
-        active: true,
-      })
+      if (coordinates.matchType !== "exact") {
+        setPendingLocationMatch({
+          coordinates,
+          requestedLocation: location,
+          values: { ...formValues },
+        })
+        return
+      }
 
-      onIncidentCreate(response.data)
+      await createIncidentWithLocation(formValues, coordinates, location)
     } catch (error) {
       console.error(error)
-      setErrorMessage(error.response?.data?.errorMessage || "Could not create incident.")
+      setErrorMessage(error.response?.data?.errorMessage || error.message || "Could not create incident.")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  async function handleUseSuggestedLocation() {
+    if (!pendingLocationMatch) {
+      return
+    }
+
+    try {
+      setIsSubmitting(true)
+      setErrorMessage("")
+      await createIncidentWithLocation(
+        pendingLocationMatch.values,
+        pendingLocationMatch.coordinates,
+        pendingLocationMatch.coordinates.query,
+      )
+    } catch (error) {
+      console.error(error)
+      setErrorMessage(error.response?.data?.errorMessage || error.message || "Could not create incident.")
     } finally {
       setIsSubmitting(false)
     }
@@ -154,6 +195,38 @@ function IncidentCreateModal({ onClose, onIncidentCreate }) {
             </div>
 
             {errorMessage && <p className="incident-modal-error">{errorMessage}</p>}
+
+            {pendingLocationMatch && (
+              <section className="incident-location-warning" role="alert">
+                <h3>Location needs confirmation</h3>
+                <p>
+                  We could not verify the exact address
+                  {" "}
+                  <strong>{pendingLocationMatch.requestedLocation}</strong>.
+                </p>
+                <p>
+                  The closest usable map position is
+                  {" "}
+                  <strong>{pendingLocationMatch.coordinates.query}</strong>.
+                </p>
+                <div>
+                  <button
+                    disabled={isSubmitting}
+                    onClick={handleUseSuggestedLocation}
+                    type="button"
+                  >
+                    Use Suggested Location
+                  </button>
+                  <button
+                    disabled={isSubmitting}
+                    onClick={() => setPendingLocationMatch(null)}
+                    type="button"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </section>
+            )}
           </form>
         )}
       </section>

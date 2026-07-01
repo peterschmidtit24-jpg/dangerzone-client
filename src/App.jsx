@@ -7,15 +7,17 @@ import HomePage from "./pages/HomePage"
 import IncidentsPage from "./pages/IncidentsPage"
 import Login from "./pages/auth/Login"
 import Signup from "./pages/auth/Signup"
+import AdminOverviewPage from "./pages/AdminOverviewPage"
 import PrivatePageExample from "./pages/PrivatePageExample";
 
 // components
 import Navbar from "./components/Navbar"
 import OnlyPrivate from "./components/OnlyPrivate";
+import OnlyAdmin from "./components/OnlyAdmin";
 
 function App() {
   const location = useLocation()
-  const showStarterNavbar = !["/", "/incidents", "/signup", "/login"].includes(location.pathname)
+  const showStarterNavbar = !["/", "/incidents", "/admin", "/signup", "/login"].includes(location.pathname)
 
   return (
     <div>
@@ -30,6 +32,7 @@ function App() {
       <Routes>
         <Route path="/" element={<OnlyPrivate><HomePage /></OnlyPrivate>} />
         <Route path="/incidents" element={<OnlyPrivate><IncidentsPage /></OnlyPrivate>} />
+        <Route path="/admin" element={<OnlyAdmin><AdminOverviewPage /></OnlyAdmin>} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
         <Route path="/private-page-example" element={<OnlyPrivate> <PrivatePageExample /> </OnlyPrivate>} />

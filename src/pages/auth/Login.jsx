@@ -20,18 +20,6 @@ function Login() {
   const handleEmailChange = (e) => setEmail(e.target.value);
   const handlePasswordChange = (e) => setPassword(e.target.value);
 
-  const fillUserDemo = () => {
-    setEmail("user@dangerzone.app");
-    setPassword("Dangerzone1");
-    setErrorMessage(null);
-  };
-
-  const fillAdminDemo = () => {
-    setEmail("admin@dangerzone.app");
-    setPassword("Dangerzone1");
-    setErrorMessage(null);
-  };
-
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -117,10 +105,6 @@ function Login() {
             </button>
           </form>
 
-          <div className="auth-demo-actions">
-            <button type="button" onClick={fillUserDemo}>o User Demo</button>
-            <button type="button" className="admin" onClick={fillAdminDemo}># Admin Demo</button>
-          </div>
         </div>
 
         <footer className="auth-footer">DANGERZONE v1.0 - Berlin, 2026</footer>

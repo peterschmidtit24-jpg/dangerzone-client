@@ -185,32 +185,6 @@
   padding: 10px 12px;
 }
 
-.auth-demo-actions {
-  border-top: 1px solid #2a2c2c;
-  display: grid;
-  gap: 10px;
-  grid-template-columns: 1fr 1fr;
-  padding: 19px 28px;
-}
-
-.auth-demo-actions button {
-  background: transparent;
-  border: 1px solid #2f3232;
-  color: #85898c;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 900;
-  height: 39px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-.auth-demo-actions button.admin {
-  border-color: #ffd42a;
-  color: #ffd42a;
-}
-
 .auth-footer {
   margin-top: 31px;
   text-align: center;
@@ -236,13 +210,8 @@
     width: 40px;
   }
 
-  .auth-form,
-  .auth-demo-actions {
+  .auth-form {
     padding-left: 18px;
     padding-right: 18px;
-  }
-
-  .auth-demo-actions {
-    grid-template-columns: 1fr;
   }
 }

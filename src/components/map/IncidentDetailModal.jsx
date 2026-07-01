@@ -6,6 +6,7 @@ import {
   deleteIncident,
   updateIncident,
 } from "../../services/incident.service"
+import { geocodeAddress } from "../../utils/geocode"
 
 function IncidentDetailModal({
   incident,
@@ -19,6 +20,7 @@ function IncidentDetailModal({
   const [commentText, setCommentText] = useState("")
   const [isEditing, setIsEditing] = useState(false)
   const [formValues, setFormValues] = useState({
+    location: incident.address || "",
     description: incident.description || "",
     severity: incident.severityValue || "low",
     probableDuration: incident.duration || "hours",
@@ -32,6 +34,7 @@ function IncidentDetailModal({
 
   useEffect(() => {
     setFormValues({
+      location: incident.address || "",
       description: incident.description || "",
       severity: incident.severityValue || "low",
       probableDuration: incident.duration || "hours",
@@ -73,10 +76,17 @@ function IncidentDetailModal({
     try {
       setIsSubmitting(true)
       setErrorMessage("")
+      const nextLocation = formValues.location.trim()
+      const locationChanged = nextLocation !== incident.address
+      const nextCoordinates = locationChanged
+        ? await geocodeAddress(nextLocation)
+        : { lat: incident.lat, lng: incident.lng }
 
       const response = await updateIncident(incident.id, {
         incidentType: incident.type,
-        location: incident.address,
+        location: nextLocation,
+        lat: nextCoordinates.lat,
+        lng: nextCoordinates.lng,
         severity: formValues.severity,
         probableDuration: formValues.probableDuration,
         description: formValues.description,
@@ -169,6 +179,20 @@ function IncidentDetailModal({
           </section>
         ) : (
           <form className="incident-edit-form" onSubmit={handleUpdateSubmit}>
+            <label>
+              <span>Street / Address</span>
+              <input
+                onChange={(event) => setFormValues({
+                  ...formValues,
+                  location: event.target.value,
+                })}
+                placeholder="Street, house number, city"
+                required
+                type="text"
+                value={formValues.location}
+              />
+            </label>
+
             <label>
               <span>Description</span>
               <textarea

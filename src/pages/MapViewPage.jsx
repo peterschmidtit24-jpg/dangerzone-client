@@ -98,6 +98,7 @@ function MapViewPage() {
     const mappedIncident = mapServerIncidentToViewModel(createdIncident)
 
     setSelectedType("all")
+    setUserPositionFromIncident(mappedIncident)
     setIncidents((currentIncidents) => [mappedIncident, ...currentIncidents])
     setIsCreateModalOpen(false)
     setSelectedIncident(mappedIncident)

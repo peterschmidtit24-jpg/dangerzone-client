@@ -77,7 +77,10 @@ function getCoordinates(incident, index) {
     return { lat: incident.lat, lng: incident.lng }
   }
 
-  const fallbackIndex = Number.isInteger(index) ? index : 0
+  const idSeed = String(incident._id || incident.location || "")
+    .split("")
+    .reduce((total, character) => total + character.charCodeAt(0), 0)
+  const fallbackIndex = Number.isInteger(index) ? index : idSeed
   const fallback = fallbackBerlinCoordinates[fallbackIndex % fallbackBerlinCoordinates.length]
   return { lat: fallback[0], lng: fallback[1] }
 }

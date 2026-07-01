@@ -20,20 +20,6 @@ function Signup() {
   const handleUsernameChange = (e) => setUsername(e.target.value);
   const handlePasswordChange = (e) => setPassword(e.target.value);
 
-  const fillUserDemo = () => {
-    setUsername("User Demo");
-    setEmail("user@dangerzone.app");
-    setPassword("Dangerzone1");
-    setErrorMessage(null);
-  };
-
-  const fillAdminDemo = () => {
-    setUsername("Admin Demo");
-    setEmail("admin@dangerzone.app");
-    setPassword("Dangerzone1");
-    setErrorMessage(null);
-  };
-
   const handleSignup = async (e) => {
     e.preventDefault();
 
@@ -141,10 +127,6 @@ function Signup() {
             </button>
           </form>
 
-          <div className="auth-demo-actions">
-            <button type="button" onClick={fillUserDemo}>o User Demo</button>
-            <button type="button" className="admin" onClick={fillAdminDemo}># Admin Demo</button>
-          </div>
         </div>
 
         <footer className="auth-footer">DANGERZONE v1.0 - Berlin, 2026</footer>

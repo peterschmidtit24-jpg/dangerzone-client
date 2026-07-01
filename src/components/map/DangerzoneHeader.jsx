@@ -5,8 +5,15 @@ import { AuthContext } from "../../context/auth.context"
 
 function DangerzoneHeader({ incidentCount, onSetPosition }) {
   const navigate = useNavigate()
-  const { authenticateUser, isLoggedIn, loggedUserEmail, loggedUsername } = useContext(AuthContext)
+  const {
+    authenticateUser,
+    isLoggedIn,
+    loggedUserEmail,
+    loggedUsername,
+    loggedUserRole,
+  } = useContext(AuthContext)
   const displayName = loggedUsername || loggedUserEmail || "Signed in"
+  const isAdmin = loggedUserRole === "admin"
 
   async function handleLogout() {
     localStorage.removeItem("authToken")
@@ -38,17 +45,30 @@ function DangerzoneHeader({ incidentCount, onSetPosition }) {
         >
           INCIDENTS <span className="dz-count-badge">{incidentCount}</span>
         </NavLink>
+        {isAdmin && (
+          <NavLink
+            className={({ isActive }) => (
+              isActive ? "dz-nav-link dz-nav-link-active dz-nav-link-admin" : "dz-nav-link dz-nav-link-admin"
+            )}
+            to="/admin"
+          >
+            <span>O</span> Admin
+          </NavLink>
+        )}
       </nav>
 
-      <button className="dz-position-button" onClick={onSetPosition} type="button">
-        <span aria-hidden="true">A</span>
-        Set Position
-        <span aria-hidden="true">/</span>
-      </button>
+      {onSetPosition && (
+        <button className="dz-position-button" onClick={onSetPosition} type="button">
+          <span aria-hidden="true">A</span>
+          Set Position
+          <span aria-hidden="true">/</span>
+        </button>
+      )}
 
       <div className="dz-user-status">
         <span className="dz-online-dot" />
         <span>{displayName}</span>
+        {isAdmin && <span className="dz-admin-badge">Admin</span>}
         {isLoggedIn && (
           <button
             className="dz-logout-button"

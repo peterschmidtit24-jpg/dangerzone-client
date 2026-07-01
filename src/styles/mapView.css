@@ -74,6 +74,11 @@
   border-color: #ff2b1f;
 }
 
+.dz-nav-link-admin.dz-nav-link-active {
+  border-color: #ffd42a;
+  color: #ffd42a;
+}
+
 .dz-count-badge {
   background: #ff2b1f;
   color: #ffffff;
@@ -132,6 +137,15 @@
   border-radius: 999px;
   height: 8px;
   width: 8px;
+}
+
+.dz-admin-badge {
+  background: #ffd42a;
+  color: #101111;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 2px 6px;
+  text-transform: uppercase;
 }
 
 .dz-logout-button {
@@ -1220,6 +1234,7 @@
   text-transform: uppercase;
 }
 
+.incident-edit-form input,
 .incident-edit-form textarea,
 .incident-edit-form select,
 .incident-create-form input,
@@ -1243,6 +1258,7 @@
   resize: vertical;
 }
 
+.incident-edit-form input,
 .incident-edit-form select {
   height: 40px;
 }
@@ -1273,6 +1289,64 @@
 
 .incident-create-form .incident-modal-error {
   margin: 0;
+}
+
+.incident-location-warning {
+  border: 1px solid rgba(255, 212, 42, 0.48);
+  display: grid;
+  gap: 10px;
+  padding: 13px 14px;
+}
+
+.incident-location-warning h3 {
+  color: #ffd42a;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.incident-location-warning p {
+  color: #dcdedb;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.incident-location-warning strong {
+  color: #f5f5f0;
+}
+
+.incident-location-warning div {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) 98px;
+  margin-top: 4px;
+}
+
+.incident-location-warning button {
+  background: transparent;
+  border: 1px solid #333536;
+  color: #8d9194;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  height: 36px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.incident-location-warning button:first-child {
+  border-color: #ffd42a;
+  color: #ffd42a;
+}
+
+.incident-location-warning button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .incident-edit-row {

@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { defaultUserPosition } from "../utils/distance"
+import { geocodeAddress } from "../utils/geocode"
 
 function useUserPosition() {
   const [userPosition, setUserPosition] = useState(defaultUserPosition)
@@ -68,32 +69,7 @@ function useUserPosition() {
 
     setPositionError("")
 
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(trimmedAddress)}`,
-    )
-
-    if (!response.ok) {
-      const errorMessage = "Could not search for this address."
-      setPositionError(errorMessage)
-      throw new Error(errorMessage)
-    }
-
-    const results = await response.json()
-    const result = results[0]
-    const lat = Number.parseFloat(result?.lat)
-    const lng = Number.parseFloat(result?.lon)
-
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-      const errorMessage = "No position found for this address."
-      setPositionError(errorMessage)
-      throw new Error(errorMessage)
-    }
-
-    const nextPosition = {
-      lat,
-      lng,
-      label: result.display_name || trimmedAddress,
-    }
+    const nextPosition = await geocodeAddress(trimmedAddress)
 
     setUserPosition(nextPosition)
     return nextPosition
