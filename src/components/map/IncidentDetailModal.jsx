@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState } from "react"
+import { Link } from "react-router-dom"
 import { AuthContext } from "../../context/auth.context"
 import { incidentTypes } from "../../data/mockIncidents"
 import {
@@ -309,7 +310,15 @@ function IncidentDetailModal({
               </button>
             </form>
           ) : (
-            <p className="incident-modal-state">Log in to comment on this incident.</p>
+            <p className="incident-modal-state">
+              <Link to="/login">Sign in</Link>
+              {" "}
+              or
+              {" "}
+              <Link to="/signup">register</Link>
+              {" "}
+              to comment on this incident.
+            </p>
           )}
         </section>
 

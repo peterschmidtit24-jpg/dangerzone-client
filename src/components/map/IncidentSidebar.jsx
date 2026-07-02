@@ -7,6 +7,7 @@ function IncidentSidebar({
   errorMessage,
   incidents,
   isLoading,
+  isLoggedIn,
   onIncidentHover,
   onIncidentSelect,
   onNewIncident,
@@ -27,7 +28,7 @@ function IncidentSidebar({
           <p>{incidents.length} of {totalIncidentCount} in {selectedRadius} km radius</p>
         </div>
         <button className="new-incident-button" onClick={onNewIncident} type="button">
-          + New
+          {isLoggedIn ? "+ New" : "Sign In to Report"}
         </button>
       </div>
 

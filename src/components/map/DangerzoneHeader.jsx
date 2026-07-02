@@ -18,7 +18,7 @@ function DangerzoneHeader({ incidentCount, onSetPosition }) {
   async function handleLogout() {
     localStorage.removeItem("authToken")
     await authenticateUser()
-    navigate("/login")
+    navigate("/")
   }
 
   return (
@@ -66,9 +66,18 @@ function DangerzoneHeader({ incidentCount, onSetPosition }) {
       )}
 
       <div className="dz-user-status">
-        <span className="dz-online-dot" />
-        <span>{displayName}</span>
-        {isAdmin && <span className="dz-admin-badge">Admin</span>}
+        {isLoggedIn ? (
+          <>
+            <span className="dz-online-dot" />
+            <span>{displayName}</span>
+            {isAdmin && <span className="dz-admin-badge">Admin</span>}
+          </>
+        ) : (
+          <>
+            <NavLink className="dz-nav-link" to="/login">Sign In</NavLink>
+            <NavLink className="dz-nav-link" to="/signup">Register</NavLink>
+          </>
+        )}
         {isLoggedIn && (
           <button
             className="dz-logout-button"

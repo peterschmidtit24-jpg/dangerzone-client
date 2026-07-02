@@ -36,6 +36,7 @@ function createUserPositionIcon() {
 function MapCanvas({
   highlightedIncidentId,
   incidents,
+  isLoggedIn,
   onIncidentSelect,
   onReportIncident,
   selectedRadius,
@@ -121,7 +122,7 @@ function MapCanvas({
         onClick={onReportIncident}
         type="button"
       >
-        + Report Incident
+        {isLoggedIn ? "+ Report Incident" : "Sign In to Report"}
       </button>
       <button className="help-button" type="button" aria-label="Help">
         ?

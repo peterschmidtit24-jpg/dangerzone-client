@@ -30,8 +30,8 @@ function App() {
       )}
 
       <Routes>
-        <Route path="/" element={<OnlyPrivate><HomePage /></OnlyPrivate>} />
-        <Route path="/incidents" element={<OnlyPrivate><IncidentsPage /></OnlyPrivate>} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/incidents" element={<IncidentsPage />} />
         <Route path="/admin" element={<OnlyAdmin><AdminOverviewPage /></OnlyAdmin>} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />

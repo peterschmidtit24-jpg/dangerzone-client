@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useContext, useEffect, useState } from "react"
+import { AuthContext } from "../context/auth.context"
 import DangerzoneHeader from "../components/map/DangerzoneHeader"
 import IncidentCreateModal from "../components/map/IncidentCreateModal"
 import IncidentDetailModal from "../components/map/IncidentDetailModal"
@@ -14,6 +15,7 @@ import { mapServerIncidentToViewModel } from "../utils/incidentMapper"
 const radiusOptions = [1, 2, 5, 10, 25]
 
 function MapViewPage() {
+  const { isLoggedIn } = useContext(AuthContext)
   const {
     requestUserPosition,
     setUserPositionFromAddress,
@@ -146,6 +148,7 @@ function MapViewPage() {
           onIncidentHover={setHoveredIncidentId}
           onIncidentSelect={handleIncidentSelect}
           onNewIncident={() => setIsCreateModalOpen(true)}
+          isLoggedIn={isLoggedIn}
           onRadiusChange={setSelectedRadius}
           onShowRadiusOverlayChange={setShowRadiusOverlay}
           onTypeChange={setSelectedType}
@@ -160,6 +163,7 @@ function MapViewPage() {
           incidents={visibleIncidents}
           onIncidentSelect={handleIncidentSelect}
           onReportIncident={() => setIsCreateModalOpen(true)}
+          isLoggedIn={isLoggedIn}
           selectedRadius={selectedRadius}
           showRadiusOverlay={showRadiusOverlay}
           userPosition={userPosition}

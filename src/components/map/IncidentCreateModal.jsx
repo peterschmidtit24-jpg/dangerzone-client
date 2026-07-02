@@ -163,6 +163,7 @@ function IncidentCreateModal({ onClose, onIncidentCreate }) {
           <div className="incident-create-auth">
             <p>You need to be signed in to create your own incident.</p>
             <Link to="/login">Sign In</Link>
+            <Link to="/signup">Register</Link>
           </div>
         ) : (
           <form className="incident-create-form" onSubmit={handleSubmit}>
