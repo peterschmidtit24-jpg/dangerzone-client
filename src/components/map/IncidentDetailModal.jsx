@@ -16,7 +16,7 @@ function IncidentDetailModal({
   onIncidentChange,
   onSetPosition,
 }) {
-  const { isLoggedIn, loggedUserId } = useContext(AuthContext)
+  const { isLoggedIn, loggedUserId, loggedUserRole } = useContext(AuthContext)
   const [commentText, setCommentText] = useState("")
   const [isEditing, setIsEditing] = useState(false)
   const [formValues, setFormValues] = useState({
@@ -31,6 +31,8 @@ function IncidentDetailModal({
 
   const type = incidentTypes[incident.type] || incidentTypes.other
   const isOwner = incident.createdById === loggedUserId
+  const isAdmin = loggedUserRole === "admin"
+  const canDeleteIncident = isOwner || isAdmin
 
   useEffect(() => {
     setFormValues({
@@ -260,9 +262,11 @@ function IncidentDetailModal({
           </form>
         )}
 
-        {isOwner && !isEditing && (
+        {canDeleteIncident && !isEditing && (
           <div className="incident-owner-actions">
-            <button onClick={() => setIsEditing(true)} type="button">Edit Incident</button>
+            {isOwner && (
+              <button onClick={() => setIsEditing(true)} type="button">Edit Incident</button>
+            )}
             <button
               className="danger"
               disabled={isSubmitting}

@@ -73,8 +73,11 @@ function mapComment(comment) {
 }
 
 function getCoordinates(incident, index) {
-  if (Number.isFinite(incident.lat) && Number.isFinite(incident.lng)) {
-    return { lat: incident.lat, lng: incident.lng }
+  const lat = Number(incident.lat)
+  const lng = Number(incident.lng)
+
+  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    return { lat, lng }
   }
 
   const idSeed = String(incident._id || incident.location || "")

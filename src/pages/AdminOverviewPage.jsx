@@ -1,17 +1,19 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import DangerzoneHeader from "../components/map/DangerzoneHeader"
 import PositionModal from "../components/map/PositionModal"
+import { AuthContext } from "../context/auth.context"
 import useUserPosition from "../hooks/useUserPosition"
 import { incidentTypes } from "../data/mockIncidents"
-import { getAllUsers, getAllComments, deleteComment } from "../services/admin.service"
+import {
+  deleteComment,
+  deleteUser,
+  getAllComments,
+  getAllUsers,
+  warnUser,
+} from "../services/admin.service"
 import { deleteIncident, getAllIncidents } from "../services/incident.service"
 import { mapServerIncidentToViewModel } from "../utils/incidentMapper"
 import "../styles/admin.css"
-
-const localUserSignals = {
-  warned: 2,
-  banned: 1,
-}
 
 const userSignalByEmail = {
   "lena@dangerzone.app": { status: "warned", flags: 2 },
@@ -136,6 +138,7 @@ function getUserInitials(user) {
 }
 
 function AdminOverviewPage() {
+  const { loggedUserId } = useContext(AuthContext)
   const {
     requestUserPosition,
     setUserPositionFromAddress,
@@ -151,10 +154,13 @@ function AdminOverviewPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isDeletingIncident, setIsDeletingIncident] = useState(false)
   const [isDeletingComment, setIsDeletingComment] = useState(false)
+  const [isDeletingUser, setIsDeletingUser] = useState(false)
+  const [isWarningUser, setIsWarningUser] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
   const [isPositionModalOpen, setIsPositionModalOpen] = useState(false)
   const [pendingIncidentDelete, setPendingIncidentDelete] = useState(null)
   const [pendingCommentDelete, setPendingCommentDelete] = useState(null)
+  const [pendingUserDelete, setPendingUserDelete] = useState(null)
 
   useEffect(() => {
     async function loadAdminOverview() {
@@ -232,11 +238,59 @@ function AdminOverviewPage() {
     }
   }, [handleDeleteComment, pendingCommentDelete])
 
+  const handleWarnUser = useCallback(async (user) => {
+    try {
+      setIsWarningUser(true)
+      setErrorMessage("")
+      const response = await warnUser(user._id)
+      setUsers((currentUsers) => currentUsers.map((currentUser) => (
+        currentUser._id === user._id ? response.data : currentUser
+      )))
+    } catch (error) {
+      console.error(error)
+      setErrorMessage(error.response?.data?.errorMessage || "Could not warn this user.")
+    } finally {
+      setIsWarningUser(false)
+    }
+  }, [])
+
+  const handleConfirmDeleteUser = useCallback(async () => {
+    if (!pendingUserDelete) {
+      return
+    }
+
+    try {
+      setIsDeletingUser(true)
+      setErrorMessage("")
+      const deletedIncidentCommentIds = new Set(
+        incidents
+          .filter((incident) => incident.createdById === pendingUserDelete._id)
+          .flatMap((incident) => incident.commentItems.map((comment) => comment.id)),
+      )
+
+      await deleteUser(pendingUserDelete._id)
+      setUsers((currentUsers) => currentUsers.filter((user) => user._id !== pendingUserDelete._id))
+      setIncidents((currentIncidents) => currentIncidents.filter((incident) => (
+        incident.createdById !== pendingUserDelete._id
+      )))
+      setComments((currentComments) => currentComments.filter((comment) => (
+        comment.user?._id !== pendingUserDelete._id && !deletedIncidentCommentIds.has(comment._id)
+      )))
+      setPendingUserDelete(null)
+    } catch (error) {
+      console.error(error)
+      setErrorMessage(error.response?.data?.errorMessage || "Could not ban this user.")
+    } finally {
+      setIsDeletingUser(false)
+    }
+  }, [incidents, pendingUserDelete])
+
   const activeIncidents = incidents.filter((incident) => incident.active)
   const highSeverityIncidents = activeIncidents.filter((incident) => (
     incident.severityValue === "high" || incident.severity === "High"
   ))
   const flaggedComments = comments.filter((comment) => comment.flag && comment.flag !== "normal")
+  const warnedUserCount = users.filter((user) => user.role !== "admin" && user.warnings > 0).length
   const normalizedUserSearch = userSearchTerm.trim().toLowerCase()
   const normalizedIncidentSearch = incidentSearchTerm.trim().toLowerCase()
 
@@ -283,8 +337,8 @@ function AdminOverviewPage() {
     { id: "active", icon: "~", value: activeIncidents.length, label: "Active Incidents", color: "#46a7ff" },
     { id: "flagged-incidents", icon: "F", value: highSeverityIncidents.length, label: "Flagged Incidents", color: "#ffd42a" },
     { id: "users", icon: "U", value: users.length, label: "Total Users", color: "#43d49a" },
-    { id: "warned", icon: "!", value: localUserSignals.warned, label: "Warned Users", color: "#ffd42a" },
-    { id: "banned", icon: "X", value: localUserSignals.banned, label: "Banned Users", color: "#ff2b1f" },
+    { id: "warned", icon: "!", value: warnedUserCount, label: "Warned Users", color: "#ffd42a" },
+    { id: "banned", icon: "X", value: 0, label: "Banned Users", color: "#ff2b1f" },
     { id: "comments", icon: "C", value: flaggedComments.length, label: "Flagged Comments", color: "#ff6a2a" },
   ]
 
@@ -294,12 +348,13 @@ function AdminOverviewPage() {
         const reports = incidents.filter((incident) => incident.createdById === user._id).length
         const commentCount = comments.filter((comment) => comment.user?._id === user._id).length
         const signal = userSignalByEmail[user.email] || {}
-        const status = user.role === "admin" ? "admin" : signal.status || "active"
+        const warningCount = user.warnings || signal.flags || 0
+        const status = user.role === "admin" ? "admin" : warningCount > 0 ? "warned" : "active"
 
         return {
           ...user,
           commentCount,
-          flags: signal.flags || 0,
+          flags: warningCount,
           reports,
           status,
         }
@@ -496,7 +551,22 @@ function AdminOverviewPage() {
                       <span><strong>{user.reports}</strong> reports</span>
                       <span><strong>{user.commentCount}</strong> comments</span>
                       <span>{formatSince(user.createdAt)}</span>
-                      <button aria-label={`Open ${getUserDisplayName(user)} details`} disabled type="button">v</button>
+                      <div className="admin-user-actions">
+                        <button
+                          disabled={isWarningUser || user.role === "admin" || user._id === loggedUserId}
+                          onClick={() => handleWarnUser(user)}
+                          type="button"
+                        >
+                          Warn
+                        </button>
+                        <button
+                          disabled={user._id === loggedUserId}
+                          onClick={() => setPendingUserDelete(user)}
+                          type="button"
+                        >
+                          Ban
+                        </button>
+                      </div>
                     </div>
                   </article>
                 )
@@ -673,6 +743,45 @@ function AdminOverviewPage() {
                 type="button"
               >
                 {isDeletingComment ? "Deleting..." : "Delete"}
+              </button>
+            </footer>
+          </section>
+        </div>
+      )}
+
+      {pendingUserDelete && (
+        <div className="admin-confirm-backdrop" role="presentation">
+          <section className="admin-confirm-modal" aria-labelledby="admin-user-confirm-title" role="dialog" aria-modal="true">
+            <header>
+              <span aria-hidden="true">!</span>
+              <div>
+                <h2 id="admin-user-confirm-title">Ban User</h2>
+                <p>This deletes the user, their incidents, and their comments.</p>
+              </div>
+            </header>
+
+            <div className="admin-confirm-body">
+              <strong>{getUserDisplayName(pendingUserDelete)}</strong>
+              <span>{pendingUserDelete.email}</span>
+              <p>
+                {pendingUserDelete.reports} incidents and {pendingUserDelete.commentCount} comments will be removed.
+              </p>
+            </div>
+
+            <footer>
+              <button
+                disabled={isDeletingUser}
+                onClick={() => setPendingUserDelete(null)}
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={isDeletingUser}
+                onClick={handleConfirmDeleteUser}
+                type="button"
+              >
+                {isDeletingUser ? "Banning..." : "Ban User"}
               </button>
             </footer>
           </section>

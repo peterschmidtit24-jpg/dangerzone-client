@@ -8,6 +8,8 @@ import { resolveAddress } from "../../utils/geocode"
 const initialFormValues = {
   incidentType: "pothole",
   location: "",
+  latitude: "",
+  longitude: "",
   severity: "medium",
   probableDuration: "hours",
   description: "",
@@ -40,7 +42,37 @@ function IncidentCreateModal({ onClose, onIncidentCreate }) {
       active: true,
     })
 
-    onIncidentCreate(response.data)
+    onIncidentCreate(response.data, {
+      lat: coordinates.lat,
+      lng: coordinates.lng,
+      location,
+    })
+  }
+
+  function getManualCoordinates(values) {
+    const latitude = values.latitude.trim()
+    const longitude = values.longitude.trim()
+
+    if (!latitude && !longitude) {
+      return null
+    }
+
+    if (!latitude || !longitude) {
+      throw new Error("Enter both latitude and longitude, or leave both empty.")
+    }
+
+    const lat = Number(latitude)
+    const lng = Number(longitude)
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      throw new Error("Coordinates must be valid numbers.")
+    }
+
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      throw new Error("Latitude must be between -90 and 90, longitude between -180 and 180.")
+    }
+
+    return { lat, lng, matchType: "manual" }
   }
 
   async function handleSubmit(event) {
@@ -55,6 +87,13 @@ function IncidentCreateModal({ onClose, onIncidentCreate }) {
       setIsSubmitting(true)
       setErrorMessage("")
       const location = formValues.location.trim()
+      const manualCoordinates = getManualCoordinates(formValues)
+
+      if (manualCoordinates) {
+        await createIncidentWithLocation(formValues, manualCoordinates, location)
+        return
+      }
+
       const coordinates = await resolveAddress(location)
 
       if (coordinates.matchType !== "exact") {
@@ -165,6 +204,30 @@ function IncidentCreateModal({ onClose, onIncidentCreate }) {
                 value={formValues.location}
               />
             </label>
+
+            <div className="incident-edit-row">
+              <label>
+                <span>Latitude Optional</span>
+                <input
+                  inputMode="decimal"
+                  onChange={(event) => updateField("latitude", event.target.value)}
+                  placeholder="52.5098817"
+                  type="text"
+                  value={formValues.latitude}
+                />
+              </label>
+
+              <label>
+                <span>Longitude Optional</span>
+                <input
+                  inputMode="decimal"
+                  onChange={(event) => updateField("longitude", event.target.value)}
+                  placeholder="13.4113225"
+                  type="text"
+                  value={formValues.longitude}
+                />
+              </label>
+            </div>
 
             <label>
               <span>Probable Duration</span>

@@ -19,6 +19,20 @@ function createIncidentIcon(type, isHighlighted) {
   })
 }
 
+function createUserPositionIcon() {
+  return L.divIcon({
+    className: "user-position-marker",
+    html: `
+      <div class="user-position-marker-inner">
+        <span class="user-position-marker-dot"></span>
+      </div>
+    `,
+    iconAnchor: [12, 34],
+    iconSize: [24, 34],
+    popupAnchor: [0, -30],
+  })
+}
+
 function MapCanvas({
   highlightedIncidentId,
   incidents,
@@ -62,6 +76,17 @@ function MapCanvas({
             radius={selectedRadius * 1000}
           />
         )}
+
+        <Marker
+          icon={createUserPositionIcon()}
+          position={[userPosition.lat, userPosition.lng]}
+        >
+          <Popup>
+            <strong>{userPosition.label}</strong>
+            <br />
+            Radius center
+          </Popup>
+        </Marker>
 
         {incidentsWithCoordinates.map((incident) => {
           const type = incidentTypes[incident.type] || incidentTypes.other

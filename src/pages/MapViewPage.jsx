@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import DangerzoneHeader from "../components/map/DangerzoneHeader"
 import IncidentCreateModal from "../components/map/IncidentCreateModal"
 import IncidentDetailModal from "../components/map/IncidentDetailModal"
@@ -10,6 +10,8 @@ import "../styles/mapView.css"
 import useUserPosition from "../hooks/useUserPosition"
 import { getDistanceInKm } from "../utils/distance"
 import { mapServerIncidentToViewModel } from "../utils/incidentMapper"
+
+const radiusOptions = [1, 2, 5, 10, 25]
 
 function MapViewPage() {
   const {
@@ -30,28 +32,32 @@ function MapViewPage() {
   const [isPositionModalOpen, setIsPositionModalOpen] = useState(false)
   const [hoveredIncidentId, setHoveredIncidentId] = useState(null)
 
-  useEffect(() => {
-    async function loadIncidents() {
-      try {
+  const loadIncidents = useCallback(async ({ showLoading = true } = {}) => {
+    try {
+      if (showLoading) {
         setIsLoading(true)
-        setErrorMessage("")
+      }
+      setErrorMessage("")
 
-        const response = await getAllIncidents()
-        const mappedIncidents = response.data
-          .filter((incident) => incident.active)
-          .map(mapServerIncidentToViewModel)
+      const response = await getAllIncidents()
+      const mappedIncidents = response.data
+        .filter((incident) => incident.active)
+        .map(mapServerIncidentToViewModel)
 
-        setIncidents(mappedIncidents)
-      } catch (error) {
-        console.error(error)
-        setErrorMessage("Could not load incidents from the server.")
-      } finally {
+      setIncidents(mappedIncidents)
+    } catch (error) {
+      console.error(error)
+      setErrorMessage("Could not load incidents from the server.")
+    } finally {
+      if (showLoading) {
         setIsLoading(false)
       }
     }
-
-    loadIncidents()
   }, [])
+
+  useEffect(() => {
+    loadIncidents()
+  }, [loadIncidents])
 
   async function handleIncidentSelect(incident) {
     try {
@@ -94,14 +100,28 @@ function MapViewPage() {
     )))
   }
 
-  function handleIncidentCreate(createdIncident) {
+  async function handleIncidentCreate(createdIncident, resolvedLocation) {
     const mappedIncident = mapServerIncidentToViewModel(createdIncident)
+    const incidentWithCoordinates = {
+      ...mappedIncident,
+      lat: Number.isFinite(mappedIncident.lat) ? mappedIncident.lat : resolvedLocation?.lat,
+      lng: Number.isFinite(mappedIncident.lng) ? mappedIncident.lng : resolvedLocation?.lng,
+      address: mappedIncident.address || resolvedLocation?.location,
+    }
 
     setSelectedType("all")
-    setUserPositionFromIncident(mappedIncident)
-    setIncidents((currentIncidents) => [mappedIncident, ...currentIncidents])
+    const distanceInKm = getDistanceInKm(userPosition, incidentWithCoordinates)
+    if (Number.isFinite(distanceInKm) && distanceInKm > selectedRadius) {
+      const nextRadius = radiusOptions.find((radius) => distanceInKm <= radius)
+      if (nextRadius) {
+        setSelectedRadius(nextRadius)
+      }
+    }
+
+    setIncidents((currentIncidents) => [incidentWithCoordinates, ...currentIncidents])
     setIsCreateModalOpen(false)
-    setSelectedIncident(mappedIncident)
+    setSelectedIncident(null)
+    await loadIncidents({ showLoading: false })
   }
 
   const visibleIncidents = incidents.filter((incident) => {

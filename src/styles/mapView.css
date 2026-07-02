@@ -927,6 +927,37 @@
   overflow: visible;
 }
 
+.user-position-marker {
+  background: transparent;
+  border: 0;
+  overflow: visible;
+}
+
+.user-position-marker-inner {
+  background: #ffffff;
+  border: 3px solid #ff2b1f;
+  border-radius: 999px 999px 999px 0;
+  box-shadow:
+    0 0 0 3px rgba(17, 18, 18, 0.8),
+    0 0 18px rgba(255, 43, 31, 0.58);
+  height: 24px;
+  position: relative;
+  transform: rotate(-45deg);
+  width: 24px;
+}
+
+.user-position-marker-dot {
+  background: #ff2b1f;
+  border-radius: 999px;
+  display: block;
+  height: 8px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+}
+
 .dangerzone-marker-inner {
   align-items: center;
   background: rgba(17, 18, 18, 0.88);

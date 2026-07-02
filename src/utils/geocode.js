@@ -16,13 +16,20 @@ function uniqueCandidates(candidates) {
 }
 
 function getSpellingCandidates(address, matchType) {
+  const normalizedStreetSuffix = address
+    .replaceAll("strase", "strasse")
+    .replaceAll("Strase", "Strasse")
+    .replace(/([a-zäöüß]+)trasse\b/gi, "$1strasse")
+    .replace(/([a-zäöüß]+)str\.?\b/gi, "$1strasse")
+
   return [
+    { matchType, query: normalizedStreetSuffix },
     { matchType, query: address },
-    { matchType, query: address.replaceAll("\u00df", "ss") },
-    { matchType, query: address.replaceAll("stra\u00dfe", "strasse") },
-    { matchType, query: address.replaceAll("Stra\u00dfe", "Strasse") },
-    { matchType, query: address.replaceAll("\u00f6", "oe") },
-    { matchType, query: address.replaceAll("\u00d6", "Oe") },
+    { matchType, query: normalizedStreetSuffix.replaceAll("\u00df", "ss") },
+    { matchType, query: normalizedStreetSuffix.replaceAll("stra\u00dfe", "strasse") },
+    { matchType, query: normalizedStreetSuffix.replaceAll("Stra\u00dfe", "Strasse") },
+    { matchType, query: normalizedStreetSuffix.replaceAll("\u00f6", "oe") },
+    { matchType, query: normalizedStreetSuffix.replaceAll("\u00d6", "Oe") },
   ]
 }
 
@@ -86,16 +93,22 @@ async function fetchCoordinates(candidate) {
   const result = results[0]
   const lat = Number.parseFloat(result?.lat)
   const lng = Number.parseFloat(result?.lon)
+  const displayName = result?.display_name || candidate.query
 
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
     return null
   }
 
+  const houseNumber = candidate.query.match(/\b\d+[a-zA-Z]?\b/)?.[0]
+  const matchType = houseNumber && !displayName.includes(houseNumber)
+    ? "street"
+    : candidate.matchType
+
   return {
-    label: result.display_name || candidate.query,
+    label: displayName,
     lat,
     lng,
-    matchType: candidate.matchType,
+    matchType,
     query: candidate.query,
   }
 }
